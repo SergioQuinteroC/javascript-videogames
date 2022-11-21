@@ -6,16 +6,23 @@ const btnLeft = document.querySelector("#left");
 const btnRight = document.querySelector("#right");
 const btnDown = document.querySelector("#down");
 
-window.addEventListener("load", setCanvasSize);
-window.addEventListener("resize", setCanvasSize);
-
 let canvasSize;
 let elementSize;
+let level = 0;
 
 const playerPosition = {
     x: undefined,
     y: undefined,
 };
+const giftPosition = {
+    x: undefined,
+    y: undefined,
+};
+let bombsPosition = [];
+//let flagBombs = false;
+
+window.addEventListener("load", setCanvasSize);
+window.addEventListener("resize", setCanvasSize);
 
 function setCanvasSize() {
     const wHeight = window.innerHeight;
@@ -36,11 +43,19 @@ function startGame() {
     game.textAlign = "end";
     //game.textAlign = "";
 
-    const map = maps[0];
+    const map = maps[level];
+
+    if (!map) {
+        gameWin();
+        return;
+    }
+
     const mapRow = map.trim().split("\n");
     const mapRowCol = mapRow.map((row) => row.trim().split(""));
 
+    bombsPosition = [];
     game.clearRect(0, 0, canvasSize, canvasSize);
+
     mapRowCol.forEach((row, x) => {
         row.forEach((col, y) => {
             const emoji = emojis[col];
@@ -53,16 +68,61 @@ function startGame() {
                 playerPosition.y = posY;
             }
 
+            if (col == "I") {
+                giftPosition.x = posX;
+                giftPosition.y = posY;
+            }
+            if (col == "X") {
+                bombsPosition.push({
+                    x: posX,
+                    y: posY,
+                });
+            }
+
             game.fillText(emoji, posX, posY);
         });
     });
-
-    //Render player
     movePlayer();
 }
 
 function movePlayer() {
+    const giftCollisionX =
+        giftPosition.x.toFixed(3) == playerPosition.x.toFixed(3);
+    const giftCollisionY =
+        giftPosition.y.toFixed(3) == playerPosition.y.toFixed(3);
+
+    if (giftCollisionX && giftCollisionY) {
+        levelWin();
+    }
+
+    const bombsCollision = bombsPosition.find((bomb) => {
+        return (
+            bomb.x.toFixed(3) == playerPosition.x.toFixed(3) &&
+            bomb.y.toFixed(3) == playerPosition.y.toFixed(3)
+        );
+    });
+
+    if (bombsCollision) {
+        playerPosition.x = undefined;
+        playerPosition.y = undefined;
+        levelFail();
+    }
+
     game.fillText(emojis["PLAYER"], playerPosition.x, playerPosition.y);
+}
+
+function levelWin() {
+    level++;
+    startGame();
+}
+
+function levelFail(){
+
+    startGame();
+}
+
+function gameWin() {
+    console.log("¡Terminaste el juego!");
 }
 
 window.addEventListener("keydown", moveByKeys); // window or document
