@@ -5,10 +5,19 @@ const btnUp = document.querySelector("#up");
 const btnLeft = document.querySelector("#left");
 const btnRight = document.querySelector("#right");
 const btnDown = document.querySelector("#down");
+const spanLives = document.querySelector("#lives");
+const spanTime = document.querySelector("#time");
+const spanRecord = document.querySelector("#record");
+const pResult = document.querySelector("#result");
 
 let canvasSize;
 let elementSize;
 let level = 0;
+let lives = 3;
+
+let timeStart;
+let timePlayer;
+let timeInterval;
 
 const playerPosition = {
     x: undefined,
@@ -19,39 +28,50 @@ const giftPosition = {
     y: undefined,
 };
 let bombsPosition = [];
-//let flagBombs = false;
 
 window.addEventListener("load", setCanvasSize);
 window.addEventListener("resize", setCanvasSize);
 
+
 function setCanvasSize() {
-    const wHeight = window.innerHeight;
-    const wWidth = window.innerWidth;
-    canvasSize = wHeight < wWidth ? wHeight * 0.8 : wWidth * 0.8;
+    const wHeight = Number(window.innerHeight.toFixed(0));
+    const wWidth = Number(window.innerWidth.toFixed(0));
+    canvasSize = wHeight < wWidth ? wHeight * 0.75 : wWidth * 0.75;
+
+    canvasSize = Number(canvasSize.toFixed(0));
 
     canvas.setAttribute("width", canvasSize);
     canvas.setAttribute("height", canvasSize);
 
     elementSize = canvasSize / 10;
-    // elementSize = (canvasSize / 10) - 1;
-
+    elementSize = Number(elementSize.toFixed(0))
+    playerPosition.x = undefined;
+    playerPosition.y = undefined;
+    
     startGame();
 }
 
 function startGame() {
     game.font = elementSize + "px Verdana";
     game.textAlign = "end";
-    //game.textAlign = "";
 
     const map = maps[level];
 
     if (!map) {
-        gameWin();
+        gameWinAndSetRecord();
         return;
+    }
+
+    if (!timeStart) {
+        timeStart = Date.now();
+        timeInterval = setInterval(showTime, 100);
+        showRecord();
     }
 
     const mapRow = map.trim().split("\n");
     const mapRowCol = mapRow.map((row) => row.trim().split(""));
+
+    showLifes();
 
     bombsPosition = [];
     game.clearRect(0, 0, canvasSize, canvasSize);
@@ -103,8 +123,6 @@ function movePlayer() {
     });
 
     if (bombsCollision) {
-        playerPosition.x = undefined;
-        playerPosition.y = undefined;
         levelFail();
     }
 
@@ -116,16 +134,52 @@ function levelWin() {
     startGame();
 }
 
-function levelFail(){
-
+function levelFail() {
+    lives--;
+    if (lives <= 0) {
+        level = 0;
+        lives = 3;
+        timeStart = undefined;
+    }
+    playerPosition.x = undefined;
+    playerPosition.y = undefined;
     startGame();
 }
 
-function gameWin() {
+function gameWinAndSetRecord() {
     console.log("¡Terminaste el juego!");
+    clearInterval(timeInterval);
+
+    const recordTime = localStorage.getItem("record_time");
+    const playerTime = +((Date.now() - timeStart) / 1000);
+
+    if (recordTime) {
+        if (recordTime >= playerTime) {
+            localStorage.setItem("record_time", playerTime);
+            pResult.innerHTML = "SUPERASTE EL RECORD :)";
+        } else {
+            pResult.innerHTML = "Lo siento, no superaste el records :(";
+        }
+    } else {
+        localStorage.setItem("record_time", playerTime);
+        pResult.innerHTML =
+            "Primera vez? Muy bien, pero ahora trata de superar tu tiempo :)";
+    }
+
 }
 
-window.addEventListener("keydown", moveByKeys); // window or document
+function showLifes() {
+    spanLives.innerText = emojis["HEART"].repeat(lives);
+}
+
+function showTime() {
+    spanTime.innerText = +((Date.now() - timeStart) / 1000);
+}
+function showRecord() {
+    spanRecord.innerHTML = localStorage.getItem("record_time");
+}
+
+window.addEventListener("keydown", moveByKeys); 
 btnUp.addEventListener("click", moveUp);
 btnLeft.addEventListener("click", moveLeft);
 btnRight.addEventListener("click", moveRight);

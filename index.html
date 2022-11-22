@@ -20,10 +20,24 @@
 
         <div class="messages">
             <!-- Pendiente TODO -->
-            <p>Parrafo de ejemplo</p>
+            <p>Vidas: <span id="lives"></span></p>
+            <p>Tiempo: ⏱ <span id="time"></span></p>
+            <p>Record: 🏁 <span id="record"></span></p>
+            <p id="result"></p>
         </div>
     </div>
 
+    <section class="win-container inactive">
+
+        <h2> ¡Felicidades! Terminaste el juego</h2>
+  
+        <span>🏆</span>
+  
+        <p class="newrecord"></p>
+  
+        <a href="/index.html"><input type="button" value="Volver a Jugar"></a>
+    </section>
+  
     <script src="./maps.js"></script>
     <script src="./game.js"></script>
 </body>
